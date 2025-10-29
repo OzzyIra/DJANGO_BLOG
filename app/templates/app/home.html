@@ -10,18 +10,14 @@
                 <h5 class="text-white">Меню Блога</h5>
             </div>
             <ul class="nav flex-column">
-                <!-- Пример элементов навигации -->
-                <!--
+                {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link text-light" href="#"><i class="fas fa-home"></i> Домой</a>
+                    <a class="nav-link text-light" href="{% url 'post_create' %}">
+                        Добавить пост
+                    </a>
+
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link text-light" href="#">Мои посты</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-light" href="#">Категории</a>
-                </li>
-                -->
+                {% endif %}
             </ul>
         </div>
     </aside>
