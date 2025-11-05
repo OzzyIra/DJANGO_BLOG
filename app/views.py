@@ -62,15 +62,15 @@ def post_detail(request, post_id):
     # Получаем конкретный пост по ID или возвращаем 404, если не найден
     post = get_object_or_404(Post, id=post_id)
 
-    user_liked = False
     if request.user.is_authenticated:
-        user_liked = post.liked.filter(user=request.user).exists()
+        post.user_liked = post.likes.filter(user=request.user).exists()
+    else:
+        post.user_liked = False
 
     # Можно передать дополнительные данные, например, комментарии
 
     return render(request, 'app/post_detail.html', {
         'post': post,
-        'user_liked': user_liked
     })
 
 
@@ -105,3 +105,18 @@ def post_delete(request, post_id):
     return redirect('post_detail', post_id=post.id)
 
 
+@login_required
+def toggle_like(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    like_obj, created = Like.objects.get_or_create(user=request.user, post=post)
+
+    if created:
+        action = 'liked'
+    else:
+        like_obj.delete()
+        action = 'unliked'
+
+    messages.info(request, f" Вы {action} пост {post.title}")
+
+    next_url = request.META.get('HTTP_REFERER', reverse('home'))
+    return HttpResponseRedirect(next_url)
