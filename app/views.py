@@ -66,8 +66,10 @@ def post_detail(request, post_id):
         user_liked = post.likes.filter(user=request.user).exists()
     else:
         user_liked = False
-
-    comment_form = CommentForm()
+    all_comments = Comment.objects.filter(post=post).select_related("author").prefetch_related(
+        "comment_likes").order_by("create_at")
+    comment_tree = build_comment_tree(all_comments)
+    comment_form = CommentForm(post_id=post_id)
 
     # Можно передать дополнительные данные, например, комментарии
 
@@ -75,6 +77,7 @@ def post_detail(request, post_id):
         'post': post,
         'user_liked': user_liked,
         'comment_form': comment_form,
+        'comment_tree': comment_tree,
     })
 
 
@@ -160,4 +163,25 @@ def add_comment(request, post_id):
             comment.save()
             messages.success(request, f"Комментарий добавлен")
             return redirect('post_detail', post_id=post.id)
-    return redirect('post_detail',post_id=post.id)
+    return redirect('post_detail', post_id=post.id)
+
+
+# построение дерева комментариев
+def build_comment_tree(comments):
+    comment_dict = {}
+    root_comments = []
+
+    for comment in comments:
+        comment_dict[comment.id] = {'comment': comment, 'replies': []}
+
+    for item in comment_dict.values():
+        comment_object = item['comment']
+        if comment_object.parent_id:
+            parent_item = comment_dict.get(comment_object.parent_id)
+            if parent_item:
+                parent_item['replies'].append(item)
+
+        else:
+            root_comments.append(item)
+
+    return root_comments
