@@ -2,26 +2,42 @@
 {% block content %}
 
 <div class="d-flex"> <!-- Flex container для боковой панели и основного контента -->
-
     <!-- Боковая панель -->
-    <aside id="sidebar" class="bg-dark text-white flex-shrink-0 position-sticky" style="top:0">
+    <aside id="sidebar" class="bg-dark text-white flex-shrink-0 position-sticky" style="top: 0;">
         <div class="sidebar-content p-3">
             <div class="sidebar-header mb-3">
                 <h5 class="text-white">Меню Блога</h5>
             </div>
             <ul class="nav flex-column">
+                <!-- Добавляем кнопку "Добавить пост" -->
                 {% if user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link text-light" href="{% url 'post_create' %}">
                         Добавить пост
                     </a>
+                </li>
+                {% endif %}
 
+                <!-- Добавляем кнопку "Мои посты" -->
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link text-light" href="{% url 'my_posts' %}">
+                        Мои посты
+                    </a>
+                </li>
+                {% endif %}
+
+                <!-- Добавляем кнопку "Избранное" -->
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link text-light" href="{% url 'favorites' %}">
+                        Избранное
+                    </a>
                 </li>
                 {% endif %}
             </ul>
         </div>
     </aside>
-
     <!-- Основной контент -->
     <div class="flex-grow-1 bg-light" style="margin-left: 10px; padding-right: 20px;">
         <!-- Добавлен небольшой отступ от боковой панели -->
@@ -34,21 +50,35 @@
                 {% for post in posts %}
                 <div class="col-md-6 col-lg-4 mb-4">
                     <a href="{% url 'post_detail' post.id %}" class="text-decoration-none text-reset">
-                        <div class="post-card p-3 h-100 position relative">
-                            {% if post.get_like_count %}
-                                <small class="text_muted">
-                                    <em>❤️</em>
-                                    {{post.get_like_count}}
-                                </small>
-                            {% endif %}
+                        <div class="post-card p-3 h-100 position-relative">
                             <h3 class="post-title">{{ post.title }}</h3>
-                            <p class="post-meta"><strong>Автор:</strong> {{ post.author.username }}</p>
-                            <p class="post-content">{{ post.content|truncatechars:150 }}</p>
-                            <!-- Отображения количества лайков в левом нижнем углу -->
-                            <div class="position-absolute bottom 0 start-0 mb-2 ms-2">
-
+                            <!-- Аватар автора -->
+                            <div class="d-flex align-items-center mb-2">
+                                {% if post.author.profile.avatar %}
+                                <img src="{{ post.author.profile.avatar.url }}" alt="Аватар {{ post.author.username }}"
+                                     class="rounded-circle me-2" style="width: 30px; height: 30px;">
+                                {% else %}
+                                <img src="https://99px.ru/sstorage/1/2025/06/image_10506252105069244744.jpg"
+                                     alt="Аватар по умолчанию" class="rounded-circle me-2"
+                                     style="width: 30px; height: 30px;">
+                                {% endif %}
+                                <p class="post-meta mb-0"><strong>Автор:</strong> {{ post.author.username }}</p>
                             </div>
-                            <!-- Отображения количества лайков в -->
+                            <p class="post-content">{{ post.content|truncatechars:150 }}</p>
+                            <!-- Отображение количества лайков в левом нижнем углу -->
+                            <div class="position-absolute bottom-0 start-0 mb-2 ms-2">
+                                {% if post.get_like_count %}
+                                <small class="text-muted">
+                                    <em>❤️</em>
+                                    {{ post.get_like_count }}
+                                    &nbsp;|&nbsp;
+                                    <i class="fas fa-comments text-primary"></i>
+                                    <em>💬</em>
+                                    {{ post.get_comment_count }}
+                                </small>
+                                {%endif%}
+                            </div>
+                            <!-- отображение количества лайков -->
                         </div>
                     </a>
                 </div>
@@ -61,7 +91,6 @@
             {% endif %}
         </div>
     </div>
-
 </div> <!-- Конец d-flex -->
 
 {% endblock %}
