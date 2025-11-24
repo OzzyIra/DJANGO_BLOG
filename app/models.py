@@ -59,7 +59,7 @@ class Like(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'post') # Один пользователь может лайкнуть пост только один раз
+        unique_together = ('user', 'post')  # Один пользователь может лайкнуть пост только один раз
         verbose_name = 'Like'
         verbose_name_plural = 'Likes'
 
@@ -70,12 +70,13 @@ class Like(models.Model):
 # Модель для комментариев
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
-    #.CASCADE удалит комментарии при удалении поста
+    # .CASCADE удалит комментарии при удалении поста
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     # Поле для вложенности (ответ на комментарий)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+
     # CASCADE удалит ответы при удалении родителя
 
     def __str__(self):
@@ -135,7 +136,7 @@ class Favorite(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'post') # Один пользователь может добавить пост в избранное только один раз
+        unique_together = ('user', 'post')  # Один пользователь может добавить пост в избранное только один раз
         verbose_name = 'Favorite'
         verbose_name_plural = 'Favorites'
         # Сортировка по умолчанию по дате добавления (новые первыми)
@@ -143,3 +144,21 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f"{self.user.username} favorited {self.post.title}"
+
+
+# модель для личных сообщений
+class Message(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="send_message")
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_message")
+    subject = models.CharField(max_length=200, blank=True)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Сообщение он {self.sender.username} для {self.recipient.username}"
+
+    class Meta:
+        verbose_name = 'Message'
+        verbose_name_plural = 'Messages'
+        ordering = ["-timestamp"]

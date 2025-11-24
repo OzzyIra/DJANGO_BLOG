@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from .models import Post, Comment, UserProfile
+from .models import Post, Comment, UserProfile, Message
 
 
 class UserRegisterForm(UserCreationForm):
@@ -11,14 +11,16 @@ class UserRegisterForm(UserCreationForm):
         model = User
         fields = ['username', 'email', 'password1', 'password2']
 
+
 class UserLoginForm(forms.Form):
     username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
 
+
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'content', 'image'] # Поля, которые будут в форме
+        fields = ['title', 'content', 'image']  # Поля, которые будут в форме
         # Можно настроить виджеты, лейблы и т.д.
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
@@ -31,15 +33,18 @@ class PostForm(forms.ModelForm):
             'image': 'Изображение (опционально)',
         }
 
+
 # Форма для комментариев
 class CommentForm(forms.ModelForm):
-    parent_id = forms.IntegerField(widget=forms.HiddenInput, required=False) # Скрытое поле для ID родительского комментария
+    parent_id = forms.IntegerField(widget=forms.HiddenInput,
+                                   required=False)  # Скрытое поле для ID родительского комментария
 
     class Meta:
         model = Comment
         fields = ['content']
         widgets = {
-            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Напишите комментарий...'}),
+            'content': forms.Textarea(
+                attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Напишите комментарий...'}),
         }
         labels = {
             'content': '',
@@ -57,12 +62,13 @@ class CommentForm(forms.ModelForm):
 
         comment = super().save(commit=False)
         # Привязываем к посту через post_id
-        comment.post_id = self.post_id # Используем post_id, а не объект, чтобы избежать лишнего запроса
+        comment.post_id = self.post_id  # Используем post_id, а не объект, чтобы избежать лишнего запроса
         if self.cleaned_data.get('parent_id'):
             # Если parent_id есть, находим родительский комментарий
             parent_id = self.cleaned_data['parent_id']
             try:
-                comment.parent = Comment.objects.get(id=parent_id, post_id=self.post_id) # Убедимся, что родитель принадлежит этому посту
+                comment.parent = Comment.objects.get(id=parent_id,
+                                                     post_id=self.post_id)  # Убедимся, что родитель принадлежит этому посту
             except Comment.DoesNotExist:
                 # Если родитель не найден, просто сохраняем как комментарий верхнего уровня
                 comment.parent = None
@@ -71,6 +77,7 @@ class CommentForm(forms.ModelForm):
         if commit:
             comment.save()
         return comment
+
 
 # Новая форма для профиля
 class UserProfileForm(forms.ModelForm):
@@ -94,7 +101,7 @@ class UserProfileForm(forms.ModelForm):
 
     def save(self, commit=True):
         user_profile = super().save(commit=False)
-        user = user_profile.user # Получаем связанный User
+        user = user_profile.user  # Получаем связанный User
 
         # Обновляем поля User
         user.username = self.cleaned_data['username']
@@ -103,3 +110,18 @@ class UserProfileForm(forms.ModelForm):
             user.save()
             user_profile.save()
         return user_profile
+
+
+# форма для личного сообщения
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['subject', 'content']
+        widgets = {
+            'subject': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Тема сообщения'}),
+            'content': forms.TextInput(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Тема сообщения...'}),
+        }
+        labels = {
+            'subject': 'Тема(опционально)',
+            'content': 'Сообщение',
+        }
