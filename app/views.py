@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.db.models import Q
 from .forms import UserRegisterForm, UserLoginForm, PostForm, CommentForm, UserProfileForm, MessageForm
-from .models import Post, Like, Comment, CommentLike, UserProfile, Favorite, Message
+from .models import Post, Like, Comment, CommentLike, UserProfile, Favorite, Message, Category, Product
 
 
 def register(request):
@@ -330,7 +330,8 @@ def messages_list(request, recipient_id=None):
         ).order_by('-timestamp').first()
         return last_msg.timestamp if last_msg else None
 
-    sorted_contacts_with_unread = sorted(contacts_with_unread, key=lambda x: get_last_message_time(x['contact']), reverse=True)
+    sorted_contacts_with_unread = sorted(contacts_with_unread, key=lambda x: get_last_message_time(x['contact']),
+                                         reverse=True)
     selected_conversation = None
     selected_recipient = None
 
@@ -373,4 +374,31 @@ def send_message(request, recipient_id):
     return render(request, 'app/send_message.html', {
         'form': form,
         'recipient': recipient,
+    })
+
+
+def shop_home(request):
+    products = Product.objects.select_related("category").all()
+    categories = Category.objects.all()
+    return render(request, 'app/shop/home.html', {
+        "products": products,
+        "categories": categories,
+    })
+
+
+def shop_category(request, category_id):
+    category = get_object_or_404(Category, id=category_id)
+    products = Product.objects.filter(category=category).select_related('category')
+    categories = Category.objects.all()
+    return render(request, 'app/shop/category.html', {
+        "products": products,
+        "category": category,
+        "categories": categories,
+    })
+
+
+def shop_product_detail(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    return render(request, 'app/shop/product_detail.html', {
+        "product": product,
     })
