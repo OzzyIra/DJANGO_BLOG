@@ -1,28 +1,31 @@
 {% extends 'app/shop/base.html' %}
 
 {% block shop_content %}
+<h2>{{category.name}}</h2>
 <!--навигация по категориям-->
 <div class="row mb-4">
     <div class="col">
-        <h5>Категории</h5>
+        <h5>Все категории</h5>
         <ul class="list-unstyled" style="display:flex;gap:15px">
             {% for cat in categories %}
-                <li><a href="{% url 'shop_category' cat.id %}">{{cat.name}}</a></li>
+            <li><a href="{% url 'shop_category' cat.id %}">{{cat.name}}</a></li>
             {% endfor %}
 
         </ul>
     </div>
-
 </div>
 
-<!--список товаров-->
+
+
+<!--список товаров в категории-->
+
 <div class="row">
     {% for product in products %}
     <div class="col-md-4 mb-4">
         <div class="card h-100">
-            {% if product.images.exists %}
-                {% with first_image=product.images.first %}
-                    <img src="{{first_image.image.url}}" class="card-img-top" alt="{{product.name}}">
+             {% if product.image %}
+                 {% with first_image=product.images.first %}
+                    <img src="{{first_image.url}}" class="card-img-top" alt="{{product.name}}">
                 {% endwith %}
             {% else %}
                 <img src="" class="card-img-top" alt="Нет изображения">
@@ -37,9 +40,9 @@
         </div>
     </div>
     {% empty %}
-    <div class="col">
-        <p class="text-muted">Товаров пока нет</p>
-    </div>
+        <div class="col">
+            <p class="text-muted">Товаров пока нет</p>
+        </div>
     {% endfor %}
 
 </div>
